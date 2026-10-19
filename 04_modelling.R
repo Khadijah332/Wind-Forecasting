@@ -1,5 +1,5 @@
 # Script Name: 04_modelling.R
-# Purpose: Train/Val/Test split, hyperparmeter tuning and model selection
+# Purpose: Train/Validation/Test split, hyperparmeter tuning and model selection
 
 library(zoo)
 library(randomForest)
@@ -97,7 +97,7 @@ mae_persistence <- mean(abs(test_set$wp1 - test_set$persistence_pred))
 
 # Calculate MAE for Random Forest
 mae_rf          <- mean(abs(test_set$wp1 - test_set$rf_pred))
-
+ 
 # Calculate MAE for Linear Regression
 mae_lin         <- mean(abs(test_set$wp1 - test_set$lin_pred))
 
