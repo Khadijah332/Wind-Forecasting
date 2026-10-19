@@ -1,13 +1,24 @@
-#Load the training data 
+# Script Name: 01_load_data.R
+# Purpose: Load raw wind forecasting data and preform initial sanity checks
+
+#Load necessary libraries
+library(dplyr)
+
+#load the raw datasets
 train_data <- read.csv("train.csv")
+test_data  <- read.csv("test.csv")
+benchmark  <- read.csv("benchmark.csv")
 
-#View the first rows
-head(train_data)
-
-#View the structure of the dataset
+#sanity check and verifications
+cat("---Train Data Summary---\n")
+#check the size of the dataset - number of rows & columns
+print(dim(train_data)) 
+#check the structure of the dataset
 str(train_data)
 
-# Plot the power generation for wind farm 1 (wp1) for the first 100 hours
-plot(train_data$wp1[1:100], type = "l", col = "blue", 
-     main = "Wind Farm 1 Power (First 100 Hours)", 
-     xlab = "Time Index", ylab = "Power Output")
+cat("---Check for Missing Values---\n")
+print(colSums(is.na(train_data)))
+
+#show the first few rows
+cat("---First Few Rows---\n")
+head(train_data)
