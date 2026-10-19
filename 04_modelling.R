@@ -2,6 +2,7 @@
 # Purpose: Feature engineering and baseline model
 
 library(zoo)
+library(xgboost)
 
 #load cleaned data
 train_data <- read.csv("processed_data/train_cleaned.csv")
@@ -42,9 +43,42 @@ test_set$lin_pred <- predict(lin_model, newdata = test_set)
 test_set$lin_pred <- pmax(0, pmin(1, test_set$lin_pred))
 mae_lin <- mean(abs(test_set$wp1 - test_set$lin_pred))
 
+#XGBOOST
+#prepare feature matrices - it uses matrices not dataframes
+feature_cols <- c("wp1_lag1", "wp1_lag24", "wp1_roll_mean3", "wp1_roll_mean24", "wp1_roll_sd6", "hour", "month")
+
+train_matrix <- xgb.DMatrix(data = as.matrix(train_set[, feature_cols]), label = train_set$wp1)
+test_matrix  <- xgb.DMatrix(data = as.matrix(test_set[, feature_cols]), label = test_set$wp1)
+
+#set hyperparamaters for time-series boosting
+params <- list(
+  objective = "reg:squarederror",
+  eta = 0.05,             #learning rate (slow and steady)
+  max_depth = 4,          #shallow trees to prevent overfitting
+  subsample = 0.8,        #row sampling
+  colsample_bytree = 0.8  #feature sampling
+)
+
+#train the XGBoost model
+set.seed(42)
+xgb_model <- xgb.train(
+  params = params,
+  data = train_matrix,
+  nrounds = 200,          #number of boosting rounds/trees
+  verbose = 0
+)
+
+#predict and set bounds
+test_set$xgb_pred <- predict(xgb_model, test_matrix)
+test_set$xgb_pred <- pmax(0, pmin(1, test_set$xgb_pred))
+
+#evaluate XGBoost MAE
+mae_xgb <- mean(abs(test_set$wp1 - test_set$xgb_pred))
+
 # print results to compare
 cat("       Wind forecasting results     \n")
 cat("Baseline Persistence MAE :", round(mae_persistence, 5), "\n")
 cat("Advanced Linear Model MAE:", round(mae_lin, 5), "\n")
+cat("XGBoost Boosting MAE     :", round(mae_xgb, 5), "\n")
 
 
